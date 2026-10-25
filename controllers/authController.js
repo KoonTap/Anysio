@@ -119,9 +119,6 @@ module.exports = function(router, db) {
 
   /* รับข้อมูลเข้าสู่ระบบและจำกัดความพยายามที่ไม่ผ่าน 20 ครั้งต่อ IP ในช่วง 10 นาที */
   router.post('/login', async (req, res) => {
-    const username = text(req.body.username, 'ชื่อผู้ใช้', 80);
-    req.attemptedUsername = username;
-    const password = text(req.body.password, 'รหัสผ่าน', 200);
     const key = req.ip;
     const now = Date.now();
     for (const [k, v] of attempts)
@@ -131,18 +128,21 @@ module.exports = function(router, db) {
       count: 0
     };
     if (hit.count >= 20) {
-      await audit(db, req, 'login', 'auth', null, 'denied');
       throw fail(429, 'ลองเข้าสู่ระบบหลายครั้งเกินไป กรุณารอ 10 นาที');
     }
+
+    /* นับคำขอที่กรอกไม่ครบด้วย; auditErrors บันทึกความล้มเหลวเพียงครั้งเดียว */
+    hit.count++;
+    attempts.set(key, hit);
+    const username = text(req.body.username, 'ชื่อผู้ใช้', 80);
+    req.attemptedUsername = username;
+    const password = text(req.body.password, 'รหัสผ่าน', 200);
     const user = (await db.query('SELECT * FROM users WHERE username=$1', [username])).rows[
       0];
 
     /* เทียบรหัสกับ Hash; ใช้ Hash จำลองเมื่อไม่พบบัญชีเพื่อลดความต่างของเวลาประมวลผล */
     const valid = await bcrypt.compare(password, user?.password_hash || dummy);
     if (!user || !valid || !user.is_active) {
-      hit.count++;
-      attempts.set(key, hit);
-      await audit(db, req, 'login', 'auth', null, 'failure');
       throw fail(401, 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกปิดใช้งาน');
     }
     attempts.delete(key);

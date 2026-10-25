@@ -11,7 +11,7 @@ const helmet = require('helmet');
 const {
   has,
   any,
-  audit,
+  auditErrors,
   csrf
 } = require('./middleware/security');
 
@@ -130,6 +130,9 @@ function createApp({
     next(e);
   });
 
+  /* บันทึกข้อผิดพลาดด้วย Middleware ก่อนส่งต่อให้ส่วนแสดงข้อความ */
+  app.use(auditErrors(db));
+
   /* จัดการข้อผิดพลาดส่วนกลาง: แปลงข้อผิดพลาดฐานข้อมูล/ไฟล์เป็นข้อความที่อ่านเข้าใจ */
   app.use(async (err, req, res, next) => {
     if (res.headersSent) return next(err);
@@ -156,13 +159,6 @@ function createApp({
       console.error('Request error:', err.code || err.name);
     }
 
-    /* บันทึกการถูกปฏิเสธสิทธิ์ลง Log ก่อนตอบกลับเป็นหน้าเว็บหรือ JSON */
-    try {
-      if ([401, 403].includes(status)) await audit(db, req, req.path.includes('/files') ?
-        'file.access.denied' : 'access.denied', 'route', req.path, 'denied');
-    } catch {
-      console.error('Failed to persist denial audit');
-    }
     res.status(status);
     if (req.originalUrl.startsWith('/api/') || req.accepts(['html', 'json']) === 'json')
       return res.json({

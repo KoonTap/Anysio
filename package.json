@@ -5,8 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "db:setup": "node db/setup.js",
-    "test": "node --test tests/*.test.js"
+    "db:setup": "node db/setup.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

@@ -27,6 +27,33 @@ async function audit(db, req, event, resource, id, result = 'success', detail = 
     ]);
 }
 
+/* Error Middleware บันทึก Login ที่ล้มเหลวและการถูกปฏิเสธสิทธิ์ก่อนแสดง Error
+   รับ 4 พารามิเตอร์เพื่อให้ Express เรียกเมื่อ Route ส่งข้อผิดพลาดมา
+   ไม่คัดลอก body, รหัสผ่าน, Cookie หรือ Token ลงใน Log */
+function auditErrors(db) {
+  return async (err, req, res, next) => {
+    const status = err.status || 500;
+    const loginAttempt = req.method === 'POST' && /^\/login\/?$/i.test(req.path);
+
+    try {
+      if (loginAttempt) {
+        req.attemptedUsername = typeof req.body?.username === 'string' ?
+          req.body.username.trim().slice(0, 80) || null : null;
+        await audit(db, req, 'login', 'auth', null,
+          [403, 429].includes(status) ? 'denied' : 'failure');
+      } else if ([401, 403].includes(status)) {
+        await audit(db, req, req.path.includes('/files') ?
+          'file.access.denied' : 'access.denied', 'route', req.path, 'denied');
+      }
+    } catch {
+      // ส่งข้อผิดพลาดเดิมต่อ แม้ฐานข้อมูล Log ขัดข้อง โดยไม่เปิดเผยข้อมูลลับ
+      console.error('Failed to persist error audit');
+    }
+
+    next(err);
+  };
+}
+
 /* สร้าง Token ประจำ Session; คำขอเปลี่ยนข้อมูลต้องส่ง Token ให้ตรงกันจึงเรียก next() */
 function csrf(req, res, next) {
   if (!req.session.csrf) req.session.csrf = crypto.randomBytes(32).toString('hex');
@@ -111,6 +138,7 @@ module.exports = {
   has,
   any,
   audit,
+  auditErrors,
   csrf,
   login,
   permission,

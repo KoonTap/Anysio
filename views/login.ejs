@@ -1,0 +1,60 @@
+<%# หน้าเข้าสู่ระบบ: ภาพและข้อความต้อนรับอยู่ซ้าย ฟอร์ม Login อยู่ขวา %>
+
+<%- include('partials/header') %>
+<section class="login-art">
+  <a class="brand" href="/">✚ anysio.</a>
+  <div class="login-copy">
+    <span class="eyebrow">A LITTLE CARE. A BETTER LIFE.</span>
+    <h1>ทุกนัดหมาย
+      <br>คือความใส่ใจ<span>อีกหนึ่งครั้ง</span>
+    </h1>
+    <p>ดูแลสัตว์เลี้ยงที่คุณรัก ตั้งแต่ขอนัดหมาย
+      <br>จนถึงติดตามผลตรวจ ในพื้นที่เดียว
+    </p>
+    <div class="pet-illustration login-dog-art">
+      <img class="banner-dog login-dog" src="/static/images/dashboard-dog.png?v=3"
+        alt="สุนัขมาสคอต ANYSIO" width="1436" height="1096">
+    </div>
+  </div>
+  <p class="login-footnote">ระบบนัดหมายคลินิกสัตว์เลี้ยง · anysio</p>
+</section>
+<section class="login-form">
+  <span class="eyebrow">WELCOME TO ANYSIO</span>
+
+  <%# ส่วน ยินดีต้อนรับกลับมา: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+  <h2>ยินดีต้อนรับกลับมา</h2>
+  <p class="muted">เข้าสู่ระบบเพื่อเริ่มดูแลนัดหมายของคุณ</p>
+
+  <% if (registered) { %>
+
+    <p class="auth-message auth-message-success" role="status">สมัครสมาชิกสำเร็จแล้ว
+      เข้าสู่ระบบด้วยบัญชีที่คุณสร้างได้เลย</p>
+
+  <% } %>
+
+  <%# ส่งชื่อผู้ใช้และรหัสผ่านไปตรวจ Login ที่ authController.js %>
+  <form method="post" action="/login">
+
+    <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>ชื่อผู้ใช้
+      <input name="username" autocomplete="username" required maxlength="80"
+        placeholder="กรอกชื่อผู้ใช้">
+    </label>
+    <label>รหัสผ่าน
+      <input type="password" name="password" autocomplete="current-password" required
+        maxlength="200" placeholder="กรอกรหัสผ่าน">
+    </label>
+    <button class="button wide">เข้าสู่ระบบ <span>→</span>
+    </button>
+  </form>
+  <p class="form-note">ยังไม่มีบัญชี? <a href="/register">สมัครสมาชิกสำหรับเจ้าของสัตว์</a>
+  </p>
+  <div class="login-info">✚ <div>
+      <strong>จัดทำโดย</strong>
+      <small>นรวิชญ์ เลิศอัชฌานุกูลชัย
+        67502100120-0</small>
+    </div>
+  </div>
+</section>
+<%- include('partials/footer') %>

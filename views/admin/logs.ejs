@@ -1,0 +1,83 @@
+<%# ประวัติกิจกรรม: ฟอร์ม GET สำหรับกรองข้อมูล และตารางแสดง Log ที่เซิร์ฟเวอร์ค้นมา %>
+
+<%- include('../partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">AUDIT TRAIL</span>
+    <h1>บันทึกกิจกรรม</h1>
+    <p>ประวัติการทำรายการและการเข้าถึงระบบ</p>
+  </div>
+</div>
+<section class="panel form-panel">
+
+  <%# ส่งตัวกรองผ่าน Query String แบบ GET เพื่อค้น Log โดยไม่เปลี่ยนข้อมูล %>
+  <form method="get" action="/admin/logs" class="inline-form">
+    <label>ตั้งแต่วันที่
+      <input type="date" name="from" value="<%= filters.from||'' %>">
+    </label>
+    <label>ถึงวันที่
+      <input type="date" name="to" value="<%= filters.to||'' %>">
+    </label>
+    <label>ผู้ใช้<select name="user_id">
+        <option value="">ทั้งหมด</option>
+        <% for(const u of users){ %>
+          <option value="<%= u.id %>" <%= String(u.id)===filters.user_id?'selected':'' %>>
+            <%= u.username %></option>
+        <% } %>
+
+      </select>
+    </label>
+    <label>เหตุการณ์<select name="event">
+        <option value="">ทั้งหมด</option>
+        <% for(const e of events){ %>
+          <option <%= e.event_type===filters.event?'selected':'' %>><%= e.event_type %></option>
+        <% } %>
+
+      </select>
+    </label>
+    <button class="button">กรองรายการ</button>
+    <a href="/admin/logs">ล้าง</a>
+  </form>
+</section>
+<section class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>วันเวลา</th>
+          <th>ผู้กระทำ</th>
+          <th>เหตุการณ์</th>
+          <th>รายการ</th>
+          <th>ผล</th>
+          <th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(const l of logs){ %>
+          <tr>
+            <td><%= formatDate(l.created_at) %></td>
+            <td><%= l.username||l.username_attempted||'ผู้ไม่เข้าสู่ระบบ' %></td>
+            <td>
+              <code><%= l.event_type %></code>
+            </td>
+            <td><%= l.resource %> <%= l.resource_id||'' %></td>
+            <td>
+              <span class="badge <%= l.result==='success'?'completed':'rejected' %>"><%= l.result %>
+              </span>
+            </td>
+            <td>
+              <small><%= JSON.stringify(l.detail) %></small>
+            </td>
+          </tr>
+        <% } %>
+
+        <% if(!logs.length){ %>
+          <tr>
+            <td colspan="6" class="empty">ไม่พบกิจกรรมตามตัวกรอง</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

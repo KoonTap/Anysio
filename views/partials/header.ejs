@@ -1,0 +1,84 @@
+<%# ส่วนหัวร่วม: โหลด CSS และแสดง Sidebar/Topbar เมื่อ Login; ผู้ไม่ Login ใช้โครง auth-shell %>
+<!doctype html>
+<html lang="th">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · anysio</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+  <%# ผู้ Login ใช้เมนูด้านข้าง; has/any ช่วยซ่อนเมนูที่ไม่มีสิทธิ์ แต่ไม่ได้แทนการตรวจฝั่ง Server %>
+
+  <% if(user){ %>
+    <aside class="sidebar">
+      <a class="brand" href="/app">
+        <span class="brand-icon">✚</span> anysio<span class="brand-dot">.</span>
+      </a>
+      <p class="sidebar-caption">คลินิคสัตว์เลี้ยง ANYSIO</p>
+      <nav>
+        <a class="<%= currentPath==='/app'?'active':'' %>" href="/app">◫
+          <span>ภาพรวมคลินิก</span>
+        </a>
+        <% if(any(['pet.read.own','pet.read.all','pet.read.assigned'])){ %>
+          <a class="<%= currentPath.startsWith('/app/pets')?'active':'' %>" href="/app/pets">♡
+            <span>สัตว์เลี้ยง</span>
+          </a>
+        <% } %>
+
+        <% if(any(['appointment.read.own','appointment.read.all','appointment.read.assigned'])){ %>
+          <a class="<%= currentPath.startsWith('/app/appointments')?'active':'' %>"
+            href="/app/appointments">▦
+            <span>นัดหมาย</span>
+          </a>
+        <% } %>
+
+        <% if(any(adminMenu)){ %>
+          <p class="nav-label">
+            การจัดการระบบ</p>
+
+          <% for(const [code,url,label] of [['user.manage','users','ผู้ใช้งาน'],['role.manage','roles','บทบาท'],['permission.manage','permissions','รายการสิทธิ์'],['acl.manage','acl','ตารางสิทธิ์ ACL'],['log.read','logs','บันทึกกิจกรรม']]){ if(has(code)){ %>
+              <a class="<%= currentPath==='/admin/'+url?'active':'' %>" href="/admin/<%= url %>">
+                <span>•</span>
+                <span><%= label %></span>
+              </a>
+        <% }} } %>
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span> ดูแลทุกนัด
+        ด้วยความใส่ใจ
+        <br>
+        <small>anysio · clinic management</small>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">คลินิกสัตว์เลี้ยง</span>
+          <span class="topbar-divider">/</span><%= title %>
+        </div>
+        <div class="account">
+          <span class="avatar"><%= user.full_name.slice(0,1) %></span>
+          <div>
+            <strong><%= user.full_name %></strong>
+            <small><%= user.role_name %></small>
+          </div>
+
+          <%# ส่งคำขอทำลาย Session และลบ Cookie เพื่อออกจากระบบ %>
+          <form method="post" action="/logout">
+
+            <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="link-button" title="ออกจากระบบ">ออกจากระบบ</button>
+          </form>
+        </div>
+      </header>
+      <main>
+      <% }else{ %>
+        <main
+          class="auth-shell<%= typeof errorPage !== 'undefined' && errorPage ? ' error-shell' : '' %>">
+
+        <% } %>

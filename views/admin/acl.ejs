@@ -1,0 +1,68 @@
+<%# ตาราง ACL: แถวคือ Permission คอลัมน์คือ Role; สวิตช์ส่งคำขอให้หรือถอนสิทธิ์ %>
+
+<%- include('../partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">ACCESS CONTROL</span>
+    <h1>ตารางสิทธิ์ ACL</h1>
+    <p>กดสวิตช์เพื่อให้หรือถอนสิทธิ์ มีผลกับคำขอถัดไปทันที</p>
+  </div>
+</div>
+<div class="notice">Admin ใช้ได้ทุกฟังก์ชัน ส่วนสิทธิ์ของตน /
+  ที่ได้รับมอบหมายยังตรวจเจ้าของข้อมูลอีกชั้น การดูไฟล์ต้องมีสิทธิ์ดูนัดนั้นด้วย</div>
+<section class="panel">
+  <div class="table-wrap">
+    <table class="acl-table">
+      <thead>
+        <tr>
+          <th>ฟังก์ชัน / การกระทำ</th>
+          <% for(const role of roles){ %>
+            <th><%= role.name %></th>
+
+          <% } %>
+
+        </tr>
+      </thead>
+
+      <%# วน Permission แล้ววน Role เพื่อหาคู่สิทธิ์ใน grants; Admin แสดงเครื่องหมายแทนสวิตช์ %>
+      <tbody>
+        <% for(const p of permissions){ %>
+          <tr>
+            <td>
+              <strong><%= p.name %></strong>
+              <small><%= p.code %></small>
+            </td>
+
+            <% for(const role of roles){ const enabled=grants.some(g=>g.role_id===role.id&&g.permission_id===p.id); %>
+
+              <td>
+                <% if(role.is_admin){ %>
+                  <span class="admin-check" title="Admin ได้ทุกสิทธิ์">✓</span>
+                <% }else{ %>
+
+                  <%# ส่ง role_id, permission_id และ enabled ที่สลับจากค่าเดิม เพื่อให้หรือถอนสิทธิ์ %>
+                  <form method="post" action="/admin/acl">
+
+                    <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <input type="hidden" name="role_id" value="<%= role.id %>">
+                    <input type="hidden" name="permission_id" value="<%= p.id %>">
+                    <input type="hidden" name="enabled" value="<%= enabled?'0':'1' %>">
+                    <button class="toggle <%= enabled?'on':'' %>"
+                      aria-label="<%= enabled?'ถอน':'ให้' %>สิทธิ์ <%= p.code %> สำหรับ <%= role.name %>"
+                      aria-pressed="<%= enabled %>">
+                      <span></span>
+                    </button>
+                  </form>
+                <% } %>
+
+              </td>
+            <% } %>
+
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

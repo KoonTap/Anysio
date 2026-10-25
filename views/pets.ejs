@@ -1,0 +1,112 @@
+<%# หน้าสัตว์เลี้ยง: ฟอร์มเพิ่ม รายการสัตว์ และปุ่มแก้ไข/ลบตามสิทธิ์และเจ้าของ %>
+
+<%- include('partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">OUR LITTLE COMPANIONS</span>
+    <h1>สัตว์เลี้ยง</h1>
+    <p>ข้อมูลเพื่อนตัวเล็กที่คุณดูแล</p>
+  </div>
+</div>
+<% if(has('pet.create')){ %>
+  <details class="panel form-panel">
+    <summary>＋ ลงทะเบียนสัตว์เลี้ยง</summary>
+
+    <%# ส่งข้อมูลสัตว์ใหม่ โดย Server ผูกเจ้าของกับบัญชีที่ Login %>
+    <form class="form-grid" method="post" action="/app/pets">
+
+      <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label>ชื่อสัตว์เลี้ยง
+        <input name="name" maxlength="100" required>
+      </label>
+      <label>ประเภท<select name="species">
+          <option value="cat">แมว</option>
+          <option value="dog">สุนัข</option>
+          <option value="other">อื่น ๆ</option>
+        </select>
+      </label>
+      <label>สายพันธุ์
+        <input name="breed" maxlength="100">
+      </label>
+      <label>วันเกิด
+        <input type="date" name="birth_date">
+      </label>
+      <label class="full">หมายเหตุ
+        <textarea name="note" maxlength="1000"></textarea>
+      </label>
+      <button class="button">บันทึกสัตว์เลี้ยง</button>
+    </form>
+  </details>
+<% } %>
+<div class="pet-grid">
+  <% for(const p of pets){ %>
+    <article class="panel pet-card">
+      <div class="pet-icon"><%= p.species==='cat'?'🐱':p.species==='dog'?'🐶':'🐾' %></div>
+      <h2><%= p.name %></h2>
+      <p><%= p.breed||'ไม่ระบุสายพันธุ์' %></p>
+      <div class="pet-meta">
+        <span>เจ้าของ</span>
+        <strong><%= p.owner_name %></strong>
+        <span>วันเกิด</span>
+        <strong><%= dateValue(p.birth_date)||'ไม่ระบุ' %></strong>
+      </div>
+      <p class="muted"><%= p.note %></p>
+
+      <% if((user.is_admin||p.owner_id===user.id)&&has('pet.update.own')){ %>
+        <details>
+          <summary>แก้ไขข้อมูล</summary>
+
+          <%# ส่งข้อมูลที่แก้ไขพร้อมรหัสรายการใน URL; Server ตรวจสิทธิ์และความถูกต้องก่อนบันทึก %>
+          <form method="post" action="/app/pets/<%= p.id %>/edit">
+
+            <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <label>ชื่อ
+              <input name="name" value="<%= p.name %>" maxlength="100" required>
+            </label>
+            <label>ประเภท<select name="species">
+
+                <% for(const [code,label] of [['cat','แมว'],['dog','สุนัข'],['other','อื่น ๆ']]){ %>
+
+                  <option value="<%= code %>" <%= p.species===code?'selected':'' %>><%= label %></option>
+
+                <% } %>
+
+              </select>
+            </label>
+            <label>สายพันธุ์
+              <input name="breed" value="<%= p.breed %>" maxlength="100">
+            </label>
+            <label>วันเกิด
+              <input type="date" name="birth_date" value="<%= dateValue(p.birth_date) %>">
+            </label>
+            <label>หมายเหตุ
+              <textarea name="note" maxlength="1000"><%= p.note %></textarea>
+            </label>
+            <button class="button">บันทึก</button>
+          </form>
+        </details>
+      <% } %>
+
+      <% if((user.is_admin||p.owner_id===user.id)&&has('pet.delete.own')){ %>
+
+        <%# ฟอร์มลบรายการ: data-confirm ให้เบราว์เซอร์ถามยืนยัน ส่วน Server ตรวจสิทธิ์และข้อมูลที่เกี่ยวข้องอีกครั้ง %>
+        <form method="post" action="/app/pets/<%= p.id %>/delete"
+          data-confirm="ลบสัตว์เลี้ยงนี้? ลบได้เฉพาะรายการที่ยังไม่มีนัด">
+
+          <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="link-button danger">ลบข้อมูล</button>
+        </form>
+      <% } %>
+
+    </article>
+  <% } %>
+</div>
+<% if(!pets.length){ %>
+  <div class="panel empty">
+    ยังไม่มีสัตว์เลี้ยงที่คุณเข้าถึงได้</div>
+<% } %>
+
+<%- include('partials/footer') %>

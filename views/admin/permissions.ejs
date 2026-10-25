@@ -1,0 +1,113 @@
+<%# จัดการ Permission ที่เชื่อมกับฟังก์ชันจริงใน catalog; ไม่สร้าง Route ใหม่ %>
+
+<%- include('../partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">PERMISSIONS</span>
+    <h1>รายการสิทธิ์</h1>
+    <p>เลือกฟังก์ชันที่ระบบรองรับ แล้วเพิ่มสิทธิ์เพื่อนำไปมอบให้บทบาท</p>
+  </div>
+</div>
+<section class="panel form-panel">
+
+  <%# ส่วน เพิ่มสิทธิ์ที่เชื่อมกับฟังก์ชันจริง: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+  <h2>เพิ่มสิทธิ์ที่เชื่อมกับฟังก์ชันจริง</h2>
+
+  <%# คัดเฉพาะสิทธิ์ใน catalog ที่ยังไม่ได้เพิ่ม; เมื่อครบแล้วซ่อนปุ่มเพิ่มและปิดช่องกรอก %>
+
+  <%
+    const availablePermissions = Object.entries(catalog)
+      .filter(([code]) => !permissions.some(p => p.code === code));
+    const allPermissionsAdded = availablePermissions.length === 0;
+  %>
+
+  <%# เพิ่ม Permission จาก catalog; ชื่อและคำอธิบายแก้ได้ แต่รหัสต้องตรงกับฟังก์ชัน %>
+  <form method="post" action="/admin/permissions" class="form-grid">
+
+    <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>ฟังก์ชัน<select name="code" required <%= allPermissionsAdded ? 'disabled' : '' %>>
+
+        <% if (allPermissionsAdded) { %>
+
+          <option value="">เพิ่มสิทธิ์ที่ระบบรองรับครบแล้ว</option>
+
+        <% } else { for (const [code, label] of availablePermissions) { %>
+
+            <option value="<%= code %>"><%= code %> — <%= label %></option>
+
+        <% } } %>
+
+      </select>
+    </label>
+    <label>ชื่อที่แสดง
+      <input name="name" maxlength="150" required placeholder="เช่น ดูบันทึกกิจกรรม"
+        <%= allPermissionsAdded ? 'disabled' : '' %>>
+    </label>
+    <label class="full">คำอธิบาย
+      <input name="description" maxlength="500" <%= allPermissionsAdded ? 'disabled' : '' %>>
+    </label>
+
+    <% if (allPermissionsAdded) { %>
+
+      <p class="form-note full">เพิ่มสิทธิ์ที่ระบบรองรับครบแล้ว</p>
+
+    <% } else { %>
+
+      <button class="button">เพิ่มสิทธิ์</button>
+
+    <% } %>
+
+  </form>
+  <p class="form-note">รหัสฟังก์ชันคงที่เพื่อรักษาการเชื่อมกับ Route แก้ชื่อแสดงผลและคำอธิบายได้</p>
+</section>
+<section class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ฟังก์ชัน</th>
+          <th>รายละเอียด</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(const p of permissions){ %>
+          <tr>
+            <td>
+              <code><%= p.code %></code>
+            </td>
+            <td>
+
+              <%# ส่งข้อมูลที่แก้ไขพร้อมรหัสรายการใน URL; Server ตรวจสิทธิ์และความถูกต้องก่อนบันทึก %>
+              <form method="post" action="/admin/permissions/<%= p.id %>/edit" class="inline-form">
+
+                <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <label>ชื่อ
+                  <input name="name" value="<%= p.name %>" maxlength="150" required>
+                </label>
+                <label>คำอธิบาย
+                  <input name="description" value="<%= p.description %>" maxlength="500">
+                </label>
+                <button class="button small">บันทึก</button>
+              </form>
+            </td>
+            <td>
+
+              <%# ฟอร์มลบรายการ: data-confirm ให้เบราว์เซอร์ถามยืนยัน ส่วน Server ตรวจสิทธิ์และข้อมูลที่เกี่ยวข้องอีกครั้ง %>
+              <form method="post" action="/admin/permissions/<%= p.id %>/delete"
+                data-confirm="ลบสิทธิ์นี้จากทุกบทบาท? Admin ยังคงใช้งานได้">
+
+                <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <button class="link-button danger">ลบ</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

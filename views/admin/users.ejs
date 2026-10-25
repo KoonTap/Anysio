@@ -1,0 +1,82 @@
+<%# จัดการบัญชีที่สมัครแล้ว: แก้ชื่อ เปลี่ยนบทบาท และยืนยันการลบบัญชี %>
+
+<%- include('../partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">ADMINISTRATION</span>
+    <h1>จัดการผู้ใช้</h1>
+    <p>จัดการข้อมูล กำหนดบทบาท และลบบัญชี</p>
+  </div>
+</div>
+<section class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>บัญชี</th>
+          <th>ข้อมูลและบทบาท</th>
+          <th>ลบบัญชี</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(const u of users){ %>
+          <tr>
+            <td>
+              <strong><%= u.username %></strong>
+              <small>#<%= u.id %></small>
+            </td>
+            <td>
+
+              <%# ส่งข้อมูลที่แก้ไขพร้อมรหัสรายการใน URL; Server ตรวจสิทธิ์และความถูกต้องก่อนบันทึก %>
+              <form method="post" action="/admin/users/<%= u.id %>/edit" class="inline-form">
+
+                <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <label>ชื่อที่แสดง
+                  <input name="full_name" value="<%= u.full_name %>" required maxlength="150">
+                </label>
+                <label>บทบาท<select name="role_id">
+                    <% for(const role of roles){ %>
+                      <option value="<%= role.id %>" <%= u.role_id===role.id?'selected':'' %>>
+                        <%= role.name %>
+                      </option>
+                    <% } %>
+                  </select>
+                </label>
+                <button class="button small">บันทึก</button>
+              </form>
+            </td>
+            <td>
+
+              <% if(u.id !== user.id){ %>
+
+                <details>
+                  <summary class="danger">ลบบัญชี</summary>
+                  <p class="form-note">ลบแล้วกู้คืนผ่านเว็บไม่ได้
+                    บัญชีที่มีข้อมูลคลินิกเกี่ยวข้องจะลบไม่ได้</p>
+
+                  <%# ฟอร์มลบรายการ: data-confirm ให้เบราว์เซอร์ถามยืนยัน ส่วน Server ตรวจสิทธิ์และข้อมูลที่เกี่ยวข้องอีกครั้ง %>
+                  <form method="post" action="/admin/users/<%= u.id %>/delete"
+                    data-confirm="ยืนยันลบบัญชี <%= u.username %>?">
+
+                    <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <label>พิมพ์ชื่อผู้ใช้ <%= u.username %> เพื่อยืนยัน
+                      <input name="confirm_username" required autocomplete="off" maxlength="80">
+                    </label>
+                    <button class="button danger small">ยืนยันลบบัญชี</button>
+                  </form>
+                </details>
+
+              <% }else{ %>
+                <small>บัญชีนี้กำลังใช้งาน</small>
+              <% } %>
+
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

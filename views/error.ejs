@@ -1,0 +1,10 @@
+<%# หน้าข้อผิดพลาด: แสดง HTTP status กับข้อความ และปุ่มกลับตามสถานะ Login %>
+
+<%- include('partials/header', { errorPage: true }) %>
+<section class="panel error-panel">
+  <span class="error-code"><%= status %></span>
+  <h1><%= message %></h1>
+  <p class="muted">ตรวจสอบข้อมูลหรือสิทธิ์ของบัญชี แล้วลองอีกครั้ง</p>
+  <a class="button" href="<%= user?'/app':'/login' %>"><%= user?'กลับหน้าหลัก':'เข้าสู่ระบบ' %></a>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,196 @@
+<%# รายละเอียดนัด: จัดการสถานะ ภาพประกอบอาการ และผลตรวจ โดยแสดงปุ่มตามสิทธิ์ %>
+
+<%- include('partials/header') %>
+<a class="back" href="/app/appointments">← กลับไปนัดหมาย</a>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">APPOINTMENT #<%= a.id %></span>
+    <h1><%= a.pet_name %></h1>
+    <p><%= formatDate(a.scheduled_at) %> · เจ้าของ <%= a.owner_name %></p>
+  </div>
+  <span class="badge <%= a.status %>"><%= statusNames[a.status] %></span>
+</div>
+
+<%# แบ่งหน้ารายละเอียดเป็นข้อมูลนัดและภาพแนบ %>
+<div class="detail-grid">
+  <section class="panel form-panel">
+
+    <%# ส่วน รายละเอียดนัดหมาย: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+    <h2>รายละเอียดนัดหมาย</h2>
+    <dl>
+      <dt>อาการ / เหตุผล</dt>
+      <dd class="preserve"><%= a.reason %></dd>
+      <dt>สัตวแพทย์</dt>
+      <dd><%= a.vet_name||'รอมอบหมาย' %></dd>
+      <% if(a.reject_reason){ %>
+        <dt>เหตุผลที่ปฏิเสธ</dt>
+        <dd><%= a.reject_reason %></dd>
+      <% } %>
+
+    </dl>
+    <%# แสดงการยืนยันเฉพาะนัด pending และผู้มีสิทธิ์; เซิร์ฟเวอร์ตรวจเงื่อนไขซ้ำอีกครั้ง %>
+
+    <% if(a.status==='pending'&&has('appointment.confirm')){ %>
+
+      <%# ส่ง action ที่ซ่อนในฟอร์มเพื่อยืนยัน ปฏิเสธ เช็กอิน หรือยกเลิกนัด ตามปุ่มของส่วนนี้ %>
+      <form method="post" action="/app/appointments/<%= a.id %>/status">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="action" value="confirm">
+        <label>มอบหมายสัตวแพทย์<select name="vet_id" required>
+            <% for(const v of vets){ %>
+              <option value="<%= v.id %>"><%= v.full_name %></option>
+            <% } %>
+          </select>
+        </label>
+        <button class="button">ยืนยันนัดหมาย</button>
+      </form>
+    <% } %>
+
+    <%# การปฏิเสธต้องระบุเหตุผล และทำได้ก่อนนัดได้รับการยืนยัน %>
+
+    <% if(a.status==='pending'&&has('appointment.reject')){ %>
+      <details>
+        <summary>ปฏิเสธคำขอนัด</summary>
+
+        <%# ส่ง action ที่ซ่อนในฟอร์มเพื่อยืนยัน ปฏิเสธ เช็กอิน หรือยกเลิกนัด ตามปุ่มของส่วนนี้ %>
+        <form method="post" action="/app/appointments/<%= a.id %>/status">
+
+          <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <input type="hidden" name="action" value="reject">
+          <label>เหตุผล
+            <textarea name="reject_reason" required maxlength="1000"></textarea>
+          </label>
+          <button class="button danger">ปฏิเสธนัด</button>
+        </form>
+      </details>
+    <% } %>
+
+    <%# ปุ่มเช็กอินแสดงเมื่อนัดยืนยันแล้วและผู้ใช้มีสิทธิ์เช็กอิน %>
+
+    <% if(a.status==='confirmed'&&has('appointment.checkin')){ %>
+
+      <%# ส่ง action ที่ซ่อนในฟอร์มเพื่อยืนยัน ปฏิเสธ เช็กอิน หรือยกเลิกนัด ตามปุ่มของส่วนนี้ %>
+      <form method="post" action="/app/appointments/<%= a.id %>/status">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="action" value="checkin">
+        <button class="button">เช็กอินเข้ารับบริการ</button>
+      </form>
+
+    <% } %>
+
+    <% if(['pending','confirmed'].includes(a.status)&&has('appointment.cancel.own')&&(user.is_admin||a.owner_id===user.id)){ %>
+
+      <%# ส่ง action ที่ซ่อนในฟอร์มเพื่อยืนยัน ปฏิเสธ เช็กอิน หรือยกเลิกนัด ตามปุ่มของส่วนนี้ %>
+      <form method="post" action="/app/appointments/<%= a.id %>/status"
+        data-confirm="ยกเลิกนัดหมายนี้?">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="action" value="cancel">
+        <button class="link-button danger">ยกเลิกนัดหมาย</button>
+      </form>
+    <% } %>
+
+  </section>
+  <section class="panel form-panel">
+
+    <%# ส่วน ภาพประกอบอาการ: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+    <h2>ภาพประกอบอาการ</h2>
+    <p class="muted">JPG / PNG ไม่เกิน 5 MB และ 25 ล้านพิกเซลต่อภาพ</p>
+
+    <% if(has('file.upload')&&(a.status!=='completed'||user.is_admin)){ %>
+
+      <%# ใช้ multipart/form-data เพื่อส่งไฟล์ภาพพร้อม Token ไปยัง Route อัปโหลด %>
+      <form method="post" action="/app/appointments/<%= a.id %>/files" enctype="multipart/form-data">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label class="upload-box">เลือกภาพอาการ
+          <input type="file" name="image" accept="image/jpeg,image/png" required>
+        </label>
+        <button class="button secondary">อัปโหลดภาพ</button>
+      </form>
+    <% } %>
+
+    <% if(!has('file.read')){ %>
+      <p class="muted">คุณไม่มีสิทธิ์ดูไฟล์แนบ</p>
+    <% } %>
+
+    <%# วนภาพที่เข้าถึงได้; เปิดภาพผ่าน Route ที่ตรวจสิทธิ์ ไม่เปิด uploads โดยตรง %>
+    <div class="file-grid">
+      <% for(const f of files){ %>
+        <article class="file-card">
+          <a href="/app/files/<%= f.id %>" target="_blank" rel="noopener">
+            <img src="/app/files/<%= f.id %>" alt="<%= f.original_name %>">
+          </a>
+          <strong><%= f.original_name %></strong>
+          <small><%= Math.ceil(f.size_bytes/1024) %> KB ·
+            <%= formatDate(f.created_at) %></small>
+          <% if(has('file.delete')&&(user.is_admin||(f.uploaded_by===user.id&&a.status!=='completed'))){ %>
+
+            <%# ฟอร์มลบรายการ: data-confirm ให้เบราว์เซอร์ถามยืนยัน ส่วน Server ตรวจสิทธิ์และข้อมูลที่เกี่ยวข้องอีกครั้ง %>
+            <form method="post" action="/app/files/<%= f.id %>/delete" data-confirm="ลบภาพนี้?">
+
+              <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="link-button danger">ลบภาพ</button>
+            </form>
+          <% } %>
+
+        </article>
+      <% } %>
+    </div>
+  </section>
+</div>
+<%# แสดงผลตรวจเฉพาะผู้ที่ผ่านกฎอ่านผลตรวจจาก Model %>
+
+<% if(canVisit){ %>
+  <section class="panel form-panel">
+
+    <%# ส่วน ผลตรวจและการรักษา: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+    <h2>ผลตรวจและการรักษา</h2>
+    <% if(visit){ %>
+      <dl>
+        <dt>ผลวินิจฉัย</dt>
+        <dd class="preserve"><%= visit.diagnosis %></dd>
+        <dt>การรักษา</dt>
+        <dd class="preserve"><%= visit.treatment %></dd>
+        <dt>ติดตามอาการวันที่</dt>
+        <dd><%= dateValue(visit.follow_up_date)||'ไม่ระบุ' %></dd>
+      </dl>
+    <% }else{ %>
+      <p class="muted">ยังไม่มีผลตรวจ</p>
+
+    <% } %>
+
+    <% if((user.is_admin||a.vet_id===user.id)&&((a.status==='checked_in'&&has('visit.create'))||(visit&&has('visit.update')))){ %>
+
+      <%# ส่งผลวินิจฉัย การรักษา และวันติดตามผล เพื่อสร้างหรือแก้ไขผลตรวจ %>
+      <form class="form-grid" method="post" action="/app/appointments/<%= a.id %>/visit">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>ผลวินิจฉัย
+          <textarea name="diagnosis" required maxlength="3000"><%= visit?.diagnosis||'' %></textarea>
+        </label>
+        <label>การรักษา
+          <textarea name="treatment" required maxlength="3000"><%= visit?.treatment||'' %></textarea>
+        </label>
+        <label>ติดตามอาการวันที่
+          <input type="date" name="follow_up_date" value="<%= dateValue(visit?.follow_up_date) %>">
+        </label>
+        <div class="full">
+          <button class="button"><%= visit?'บันทึกการแก้ไข':'บันทึกผลและสิ้นสุดการตรวจ' %></button>
+        </div>
+      </form>
+    <% } %>
+
+  </section>
+<% } %>
+
+<%- include('partials/footer') %>

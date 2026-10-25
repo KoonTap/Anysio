@@ -1,0 +1,66 @@
+<%# ภาพรวมคลินิก: ข้อมูล appointments ถูกกรองสิทธิ์จาก Route ก่อนส่งมาที่หน้านี้ %>
+
+<%- include('partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">CLINIC OVERVIEW</span>
+    <h1>สวัสดี, <%= user.full_name %> <span class="wave">☀</span>
+    </h1>
+    <p>ติดตามนัดหมายและดูแลเพื่อนตัวเล็กของคุณได้จากที่นี่</p>
+  </div>
+  <% if(has('appointment.create')){ %>
+    <a class="button" href="/app/appointments#new">＋
+      ขอนัดหมาย</a>
+  <% } %>
+
+</div>
+<section class="welcome-banner">
+  <div>
+    <span class="eyebrow">BETTER CARE STARTS HERE</span>
+    <h2>นัดหมายพร้อม
+      <br>ความอุ่นใจก็พร้อม
+    </h2>
+    <p>เช็กสถานะ เตรียมตัว และติดตามผลตรวจได้ง่าย ๆ</p>
+
+    <% if(any(['appointment.read.own','appointment.read.all','appointment.read.assigned'])){ %>
+      <a class="button light" href="/app/appointments">ดูนัดหมายทั้งหมด ↗</a>
+    <% } %>
+
+  </div>
+  <div class="banner-art" aria-hidden="true">
+    <img class="banner-dog" src="/static/images/dashboard-dog.png?v=3" alt="" width="1436"
+      height="1096">
+  </div>
+</section>
+
+<%# นับนัดแต่ละสถานะจากข้อมูลที่ถูกกรองสิทธิ์แล้ว %>
+<section class="stats">
+
+  <% for(const [label,value,icon] of [['นัดหมายทั้งหมด',appointments.length,'▦'],['รอการยืนยัน',appointments.filter(a=>a.status==='pending').length,'◷'],['ยืนยัน / รอตรวจ',appointments.filter(a=>['confirmed','checked_in'].includes(a.status)).length,'✚'],['ตรวจเสร็จแล้ว',appointments.filter(a=>a.status==='completed').length,'✓']]){ %>
+
+    <article class="stat">
+      <div class="stat-top">
+        <span><%= label %></span>
+        <span class="stat-icon"><%= icon %></span>
+      </div>
+      <strong><%= value %></strong>
+      <small>ตามขอบเขตสิทธิ์ของคุณ</small>
+    </article>
+  <% } %>
+
+</section>
+<section class="panel">
+  <div class="panel-heading">
+    <div>
+
+      <%# ส่วน นัดหมายล่าสุด: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+      <h2>นัดหมายล่าสุด</h2>
+      <p>อัปเดตการดูแลในแต่ละขั้นตอน</p>
+    </div>
+  </div>
+  <%# ใช้ตารางร่วม แสดงเพียง 8 รายการแรกจากลำดับที่ Route ส่งมา %>
+
+  <%- include('partials/appointments-table',{appointments:appointments.slice(0,8)}) %>
+
+</section>
+<%- include('partials/footer') %>

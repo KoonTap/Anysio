@@ -1,0 +1,56 @@
+<%# หน้ารวมการขอนัด: เลือกสัตว์ วันเวลา และอาการ พร้อมแสดงรายการนัดที่เข้าถึงได้ %>
+
+<%- include('partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">APPOINTMENTS</span>
+    <h1>นัดหมาย</h1>
+    <p>ขอนัดและติดตามสถานะการเข้ารับบริการ</p>
+  </div>
+</div>
+<% if(has('appointment.create')){ %>
+  <section class="panel form-panel" id="new">
+
+    <%# ส่วน ขอนัดหมายใหม่: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+    <h2>ขอนัดหมายใหม่</h2>
+    <p class="muted">รับนัดทุกวัน 09:00–16:30 น. ครั้งละ 30 นาที เจ้าหน้าที่จะยืนยันแพทย์ให้คุณ</p>
+
+    <% if(!pets.length){ %>
+      <p>ลงทะเบียนสัตว์เลี้ยงก่อนขอนัด <a href="/app/pets">ไปหน้าสัตว์เลี้ยง
+          →</a>
+      </p>
+    <% }else{ %>
+
+      <%# ส่งสัตว์ วันเวลา และอาการ เพื่อขอนัดสถานะ pending %>
+      <form class="form-grid" method="post" action="/app/appointments">
+
+        <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>สัตว์เลี้ยง<select name="pet_id" required>
+            <% for(const p of pets){ %>
+              <option value="<%= p.id %>"><%= p.name %></option>
+            <% } %>
+          </select>
+        </label>
+        <label>วันและเวลานัด
+          <input type="datetime-local" name="scheduled_at" step="1800" required>
+        </label>
+        <label class="full">อาการ / เหตุผลที่เข้ารับบริการ
+          <textarea name="reason" maxlength="1500" required
+            placeholder="เช่น ตรวจสุขภาพประจำปี มีอาการซึม หรือรับวัคซีน"></textarea>
+        </label>
+        <button class="button">ส่งคำขอนัดหมาย →</button>
+      </form>
+    <% } %>
+
+  </section>
+<% } %>
+<section class="panel">
+  <div class="panel-heading">
+    <h2>รายการนัดหมาย <span class="count"><%= appointments.length %></span>
+    </h2>
+  </div>
+  <%- include('partials/appointments-table') %>
+
+</section>
+<%- include('partials/footer') %>

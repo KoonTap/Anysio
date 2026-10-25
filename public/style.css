@@ -1,0 +1,1282 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+
+/* กล่องแจ้งผลสมัครสมาชิกสำเร็จหรือข้อมูลที่กรอกไม่ถูกต้อง */
+.auth-message {
+  margin-top: 20px;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.auth-message-success {
+  color: #194e3f;
+  background: #e7f0e8;
+  border-color: #b8d5c4;
+}
+
+.auth-message-error {
+  color: #8f2929;
+  background: #fff1f1;
+  border-color: #ebbbbb;
+}
+
+/* ตัวแปรสีส่วนกลาง เปลี่ยนค่านี้เพื่อปรับโทนเว็บ */
+:root {
+  --ink: #243b38;
+  --muted: #788983;
+  --green: #226b56;
+  --green-dark: #194e3f;
+  --mint: #e7f0e8;
+  --bg: #f6f8f5;
+  --line: #e4eae4;
+  --orange: #d7955d
+}
+
+/* ค่าพื้นฐานของทั้งเว็บ: การคำนวณขนาด ฟอนต์ ลิงก์ และหัวข้อ */
+* {
+  box-sizing: border-box
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font: 14px 'Noto Sans Thai', Tahoma, sans-serif;
+  line-height: 1.65
+}
+
+a {
+  color: var(--green);
+  text-decoration: none
+}
+
+a:hover {
+  text-decoration: underline
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  outline-offset: 4px
+}
+
+button {
+  cursor: pointer
+}
+
+h1,
+h2,
+p {
+  margin: 0
+}
+
+h1 {
+  font-size: 30px;
+  letter-spacing: -.8px;
+  line-height: 1.4;
+  font-weight: 600
+}
+
+h2 {
+  font-size: 19px;
+  font-weight: 600
+}
+
+small {
+  font-size: 12px
+}
+
+strong {
+  font-weight: 600
+}
+
+/* แถบเมนูซ้าย: โลโก้ ลิงก์สถานะ active และข้อความด้านล่าง */
+.sidebar {
+  width: 246px;
+  position: fixed;
+  inset: 0 auto 0 0;
+  background: #fff;
+  border-right: 1px solid var(--line);
+  padding: 36px 25px;
+  display: flex;
+  flex-direction: column;
+  z-index: 3
+}
+
+.brand {
+  font-size: 33px;
+  font-weight: 700;
+  letter-spacing: -1.6px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--green-dark)
+}
+
+.brand:hover {
+  text-decoration: none
+}
+
+.brand-icon {
+  font-size: 27px;
+  background: var(--green);
+  color: white;
+  border-radius: 11px;
+  line-height: 40px;
+  width: 40px;
+  text-align: center
+}
+
+.brand-dot {
+  color: var(--orange);
+  margin-left: -9px
+}
+
+.sidebar-caption {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+  margin: 12px 0 35px
+}
+
+.sidebar nav>a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  margin: 4px 0;
+  color: #677b72;
+  border-radius: 9px;
+  font-weight: 500
+}
+
+.sidebar nav>a.active {
+  background: var(--mint);
+  color: var(--green-dark)
+}
+
+.sidebar nav>a:hover {
+  background: #f1f5f0;
+  text-decoration: none
+}
+
+.nav-label {
+  font-size: 11px;
+  color: #9ca9a1;
+  margin: 30px 15px 8px
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  font-size: 11px;
+  color: #71847b;
+  padding-top: 30px
+}
+
+.sidebar-bottom small {
+  font-size: 10px;
+  color: #a0ada6
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #7fa785;
+  border-radius: 50%;
+  margin-right: 5px
+}
+
+/* พื้นที่ทำงานหลัก เว้นด้านซ้ายให้ Sidebar และจัด Topbar กับบัญชีผู้ใช้ */
+.workspace {
+  margin-left: 246px;
+  min-height: 100vh
+}
+
+.topbar {
+  height: 88px;
+  background: rgba(255, 255, 255, .8);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 42px;
+  font-size: 12px
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  font-weight: 600;
+  color: var(--muted)
+}
+
+.topbar-divider {
+  color: #c6cec8;
+  margin: 0 15px
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px
+}
+
+.account strong {
+  display: block;
+  font-size: 12px
+}
+
+.account small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted)
+}
+
+.avatar {
+  height: 37px;
+  width: 37px;
+  border-radius: 50%;
+  background: #f0e2ce;
+  display: grid;
+  place-items: center;
+  color: #8b6c48
+}
+
+.account form {
+  margin-left: 14px
+}
+
+.link-button {
+  border: 0;
+  background: none;
+  color: var(--green);
+  padding: 8px 0;
+  font-size: 12px
+}
+
+/* ขนาดเนื้อหาหลักและหัวข้อของแต่ละหน้า */
+.workspace main {
+  max-width: 1440px;
+  margin: auto;
+  padding: 36px 42px 56px
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px
+}
+
+.page-heading .eyebrow {
+  display: block;
+  margin-bottom: 8px
+}
+
+.page-heading p {
+  color: var(--muted);
+  margin-top: 8px
+}
+
+.wave {
+  font-size: 25px;
+  color: var(--orange)
+}
+
+/* ปุ่มหลักและรูปแบบรอง เช่น สีอ่อน ขนาดเล็ก และเต็มความกว้าง */
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--green);
+  color: white;
+  padding: 11px 19px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap
+}
+
+.button:hover {
+  background: var(--green-dark);
+  text-decoration: none
+}
+
+.button.secondary {
+  background: white;
+  color: var(--green);
+  border-color: #c7d9ce
+}
+
+.button.light {
+  background: white;
+  color: var(--green)
+}
+
+.button.small {
+  padding: 8px 12px
+}
+
+.button.wide {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 10px
+}
+
+/* แบนเนอร์ต้อนรับใน Dashboard และพื้นที่รูปหมา */
+.welcome-banner {
+  background: #dce9df;
+  border-radius: 16px;
+  min-height: 240px;
+  display: flex;
+  justify-content: space-between;
+  padding: 31px 37px;
+  position: relative;
+  overflow: hidden
+}
+
+.welcome-banner h2 {
+  font-size: 29px;
+  color: #315d49;
+  line-height: 1.4;
+  margin: 11px 0
+}
+
+.welcome-banner p {
+  font-size: 12px;
+  color: #6a8374;
+  margin-bottom: 18px
+}
+
+.welcome-banner .eyebrow {
+  color: #708c76
+}
+
+.banner-art {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative
+}
+
+/* รูปหมาที่ใช้ร่วมกัน: รักษาสัดส่วนและลดความสดสีเหลือ 80% */
+.banner-dog {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: saturate(.8)
+}
+
+/* รูปสัตว์ที่วาดด้วย CSS: ใบหน้า หู ตา จมูก และปาก (ยังใช้ในหน้าสมัคร) */
+.pet-face {
+  position: relative;
+  width: 155px;
+  height: 148px;
+  border-radius: 50% 50% 42% 42%;
+  background: #d4a879;
+  z-index: 1;
+  box-shadow: inset 0 -25px 0 #dfbb94
+}
+
+.pet-face:after {
+  content: '';
+  position: absolute;
+  top: 77px;
+  left: 33px;
+  background: #f3e7d5;
+  width: 90px;
+  height: 61px;
+  border-radius: 45%;
+  z-index: 0
+}
+
+.ear {
+  position: absolute;
+  top: -22px;
+  width: 65px;
+  height: 70px;
+  background: #c28e5a;
+  z-index: -1;
+  border-radius: 8px 70px 0 40px
+}
+
+.ear.left {
+  left: -6px;
+  transform: rotate(-15deg)
+}
+
+.ear.right {
+  right: -6px;
+  transform: scaleX(-1) rotate(-15deg)
+}
+
+.eyes {
+  position: absolute;
+  top: 44px;
+  left: 35px;
+  font-size: 30px;
+  letter-spacing: 6px;
+  z-index: 2;
+  color: #493a2e
+}
+
+.nose {
+  position: absolute;
+  top: 79px;
+  left: 68px;
+  color: #664e3c;
+  font-size: 20px;
+  z-index: 2
+}
+
+.smile {
+  position: absolute;
+  top: 96px;
+  left: 65px;
+  z-index: 2;
+  font-size: 20px;
+  color: #664e3c
+}
+
+.floating-heart {
+  position: absolute;
+  right: 9px;
+  top: 4px;
+  font-size: 50px;
+  color: #fff;
+  transform: rotate(20deg)
+}
+
+/* การ์ดสถิตินัดหมายใน Dashboard */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 25px 0
+}
+
+.stat {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 19px 21px
+}
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #71847b;
+  font-size: 12px
+}
+
+.stat-icon {
+  height: 30px;
+  width: 30px;
+  background: #f2f5ef;
+  border-radius: 8px;
+  text-align: center;
+  line-height: 30px;
+  color: #5f8368;
+  font-size: 19px
+}
+
+.stat>strong {
+  display: block;
+  font-size: 31px;
+  line-height: 1.6
+}
+
+.stat>small {
+  color: #9aa79f;
+  font-size: 10px
+}
+
+/* กรอบเนื้อหาและตารางที่ใช้ร่วมกัน พร้อมพื้นที่เลื่อนตารางแนวนอน */
+.panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden
+}
+
+.panel-heading {
+  padding: 22px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.panel-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px
+}
+
+.table-wrap {
+  overflow-x: auto
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap
+}
+
+th {
+  font-size: 11px;
+  color: #84948b;
+  background: #fafbf9;
+  padding: 14px 23px;
+  font-weight: 500;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line)
+}
+
+td {
+  padding: 18px 23px;
+  font-size: 12px;
+  border-bottom: 1px solid #eff2ed
+}
+
+tbody tr:last-child td {
+  border-bottom: 0
+}
+
+td strong,
+td small {
+  display: block
+}
+
+td small {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 3px
+}
+
+td code {
+  font-size: 11px
+}
+
+.table-link {
+  font-size: 11px
+}
+
+/* ป้ายสีสถานะนัด: pending, confirmed, checked_in, completed, rejected, cancelled */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 11px;
+  border-radius: 30px;
+  background: #eff1f0;
+  color: #7b8680
+}
+
+.badge.pending {
+  background: #fbf0d9;
+  color: #a68139
+}
+
+.badge.confirmed {
+  background: #e7efed;
+  color: #457b67
+}
+
+.badge.checked_in {
+  background: #e7edf8;
+  color: #5f7fad
+}
+
+.badge.completed {
+  background: #e8f0df;
+  color: #658443
+}
+
+.badge.rejected,
+.badge.cancelled {
+  background: #f8e7e5;
+  color: #b0716b
+}
+
+/* ข้อความส่วนท้ายของหน้าที่เข้าสู่ระบบแล้ว */
+.footer {
+  padding: 20px 42px;
+  border-top: 1px solid var(--line);
+  color: #8a9a8f;
+  font-size: 10px;
+  display: flex;
+  justify-content: space-between
+}
+
+/* ฟอร์มทั่วไป: จัดคอลัมน์ ช่องกรอก ปุ่ม และสถานะเมื่อโฟกัส */
+.form-panel {
+  padding: 25px
+}
+
+.form-panel>h2 {
+  margin-bottom: 12px
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 22px;
+  margin-top: 20px
+}
+
+.form-grid>.button {
+  justify-self: start
+}
+
+.full {
+  grid-column: 1/-1
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 10px 0
+}
+
+input,
+textarea,
+select {
+  display: block;
+  border: 1px solid #dce4dc;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 12px;
+  width: 100%;
+  margin-top: 7px;
+  min-width: 0
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #8ab49a;
+  outline-offset: 1px
+}
+
+input[type=checkbox] {
+  width: auto;
+  margin: 0
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--green);
+  padding: 6px 0
+}
+
+details {
+  margin: 12px 0
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.form-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 15px
+}
+
+/* การ์ดสัตว์เลี้ยง ไอคอน และรายละเอียดเจ้าของ */
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px
+}
+
+.pet-card {
+  padding: 25px
+}
+
+.pet-card>p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0
+}
+
+.pet-icon {
+  font-size: 38px;
+  background: #f3f4ec;
+  height: 75px;
+  width: 75px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px
+}
+
+.pet-meta {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 11px
+}
+
+.pet-meta span {
+  color: var(--muted)
+}
+
+.empty {
+  text-align: center;
+  padding: 55px;
+  color: var(--muted)
+}
+
+.count {
+  font-size: 12px;
+  background: var(--mint);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-left: 6px
+}
+
+/* หน้ารายละเอียดนัด: แบ่งคอลัมน์ข้อมูลนัดกับภาพ และคงการขึ้นบรรทัดข้อความ */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px
+}
+
+.back {
+  display: block;
+  margin-bottom: 20px;
+  font-size: 12px
+}
+
+dt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 20px
+}
+
+dd {
+  margin: 6px 0 12px
+}
+
+.preserve {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere
+}
+
+/* ช่องเลือกไฟล์และรูปแบบรายการภาพแนบ */
+.upload-box {
+  border: 1px dashed #afc7b5;
+  padding: 18px;
+  border-radius: 8px;
+  background: #f9fbf7
+}
+
+.upload-box input {
+  border: 0;
+  background: none;
+  padding: 0
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 20px
+}
+
+.file-card img {
+  width: 100%;
+  height: 125px;
+  object-fit: cover;
+  border-radius: 8px
+}
+
+.file-card strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 11px
+}
+
+.file-card small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted)
+}
+
+.file-card a {
+  font-size: 11px
+}
+
+/* สีสำหรับการกระทำที่ต้องระวัง เช่น ลบหรือปฏิเสธ */
+.danger {
+  color: #b55c52
+}
+
+.button.danger {
+  background: #ae5e52;
+  color: white
+}
+
+/* ฟอร์มที่เรียงช่องในแถวเดียว ใช้ในหน้าจัดการและตัวกรอง */
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px
+}
+
+.inline-form label {
+  margin: 0
+}
+
+.inline-form input,
+.inline-form select {
+  max-width: 235px
+}
+
+.inline-form .check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0
+}
+
+/* ข้อความชี้แจงและตาราง ACL พร้อมสวิตช์ให้/ถอนสิทธิ์ */
+.notice {
+  padding: 16px 20px;
+  background: #eaf1e7;
+  color: #607854;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 12px
+}
+
+.acl-table td:not(:first-child),
+.acl-table th:not(:first-child) {
+  text-align: center
+}
+
+.toggle {
+  border: 0;
+  background: #dde4df;
+  width: 36px;
+  height: 21px;
+  border-radius: 20px;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center
+}
+
+.toggle span {
+  height: 15px;
+  width: 15px;
+  background: white;
+  border-radius: 50%
+}
+
+.toggle.on {
+  background: var(--green);
+  justify-content: flex-end
+}
+
+.admin-check {
+  font-size: 18px;
+  color: var(--green)
+}
+
+/* กล่องข้อผิดพลาด; error-shell จัดกึ่งกลางสำหรับผู้ที่ยังไม่ Login */
+.error-panel {
+  margin: 60px auto;
+  max-width: 650px;
+  text-align: center;
+  padding: 50px
+}
+
+.auth-shell.error-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 24px;
+}
+
+.error-shell .error-panel {
+  width: 100%;
+  margin: 0;
+  padding: clamp(24px, 5vw, 50px);
+  overflow-wrap: anywhere;
+}
+
+.error-code {
+  font-size: 65px;
+  font-weight: 700;
+  color: #9abca8
+}
+
+.error-panel h1 {
+  font-size: 23px
+}
+
+.error-panel p {
+  margin: 15px 0 25px
+}
+
+/* หน้า Login/สมัครสมาชิกแบ่งภาพต้อนรับกับฟอร์มเป็นสองคอลัมน์ */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: #fff
+}
+
+.login-art {
+  background: #e2ede2;
+  padding: 42px 65px;
+  position: relative;
+  overflow: hidden
+}
+
+.login-copy {
+  max-width: 510px;
+  margin: 65px auto 0
+}
+
+.login-copy h1 {
+  font-size: 46px;
+  line-height: 1.4;
+  color: #305a43;
+  margin: 22px 0
+}
+
+.login-copy h1 span {
+  display: block;
+  color: #85a482
+}
+
+.login-copy p {
+  color: #6a8572;
+  font-size: 14px
+}
+
+/* พื้นที่รูปสัตว์ตกแต่งและวงกลมพื้นหลังในหน้าบัญชีผู้ใช้ */
+.pet-illustration {
+  position: relative;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px
+}
+
+.pet-illustration:before {
+  content: '';
+  position: absolute;
+  background: #d1e0cd;
+  width: 270px;
+  height: 220px;
+  border-radius: 50%
+}
+
+.pet-illustration .pet-face {
+  transform: scale(1.15)
+}
+
+/* ซ่อนวงกลมเดิมเฉพาะหน้า Login ที่ใช้ภาพ PNG แทนรูปวาด CSS */
+.login-dog-art:before {
+  display: none;
+}
+
+.login-dog {
+  width: min(100%, 320px);
+  max-height: 250px;
+  object-fit: contain;
+}
+
+.care-label {
+  position: absolute;
+  z-index: 2;
+  bottom: 15px;
+  right: 10px;
+  background: #fffefa;
+  padding: 12px 18px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px #517e4510;
+  font-size: 11px;
+  color: #728c62;
+  transform: rotate(-5deg)
+}
+
+.login-footnote {
+  font-size: 10px;
+  color: #7d9682;
+  margin-top: 45px
+}
+
+/* ความกว้างและระยะห่างของฟอร์มเข้าสู่ระบบและสมัครสมาชิก */
+.login-form {
+  max-width: 460px;
+  width: 100%;
+  margin: auto;
+  padding: 45px
+}
+
+.login-form h2 {
+  font-size: 28px;
+  margin: 12px 0
+}
+
+.login-form form {
+  margin-top: 32px
+}
+
+.login-form label {
+  margin: 18px 0
+}
+
+.login-form input {
+  padding: 13px
+}
+
+.login-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-top: 1px solid var(--line);
+  margin-top: 45px;
+  padding-top: 25px;
+  color: #7a927e;
+  font-size: 24px
+}
+
+.login-info strong {
+  font-size: 12px;
+  display: block
+}
+
+.login-info small {
+  font-size: 10px;
+  display: block;
+  color: var(--muted)
+}
+
+/* จอใหญ่: ขยายแบนเนอร์และปรับตำแหน่งภาพ */
+@media(min-width:1500px) {
+  .welcome-banner {
+    min-height: 270px
+  }
+
+  .banner-art {
+    margin-right: 50px
+  }
+}
+
+/* จอขนาดกลาง: ลดความกว้าง Sidebar และช่องว่าง */
+@media(max-width:1100px) {
+  .sidebar {
+    width: 210px;
+    padding: 30px 18px
+  }
+
+  .workspace {
+    margin-left: 210px
+  }
+
+  .workspace main {
+    padding: 28px
+  }
+
+  .topbar {
+    padding: 0 28px
+  }
+
+  .stats {
+    gap: 10px
+  }
+
+  .stat {
+    padding: 15px
+  }
+
+  .pet-grid {
+    grid-template-columns: repeat(2, 1fr)
+  }
+
+  .login-art {
+    padding: 40px
+  }
+
+  .login-copy h1 {
+    font-size: 37px
+  }
+}
+
+/* แท็บเล็ต/มือถือ: ปรับเลย์เอาต์และซ่อนภาพฝั่งซ้ายของหน้าบัญชีผู้ใช้ */
+@media(max-width:800px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    padding: 15px 20px;
+    display: block
+  }
+
+  .sidebar .brand {
+    font-size: 25px
+  }
+
+  .sidebar-caption,
+  .sidebar-bottom,
+  .nav-label {
+    display: none
+  }
+
+  .sidebar nav {
+    display: flex;
+    overflow: auto;
+    margin-top: 12px
+  }
+
+  .sidebar nav>a {
+    white-space: nowrap;
+    padding: 7px 13px;
+    font-size: 12px
+  }
+
+  .workspace {
+    margin: 0
+  }
+
+  .topbar {
+    height: auto;
+    min-height: 70px;
+    padding: 12px 20px;
+    gap: 10px;
+    flex-wrap: wrap
+  }
+
+  .workspace main {
+    padding: 24px 18px
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr)
+  }
+
+  .welcome-banner {
+    padding: 25px
+  }
+
+  .banner-art {
+    width: 160px
+  }
+
+  .page-heading h1 {
+    font-size: 25px
+  }
+
+  .page-heading {
+    align-items: start
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 0
+  }
+
+  .footer {
+    padding: 20px;
+    display: block
+  }
+
+  .footer span {
+    display: block
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr
+  }
+
+  .login-art {
+    display: none
+  }
+
+  .login-form {
+    max-width: 450px
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr
+  }
+
+  .full {
+    grid-column: auto
+  }
+}
+
+/* มือถือจอเล็ก: ปรับขนาดและระยะห่างให้เนื้อหาพอดีจอ */
+@media(max-width:480px) {
+  .pet-grid {
+    grid-template-columns: 1fr
+  }
+
+  .banner-art {
+    display: none
+  }
+
+  .page-heading {
+    flex-direction: column
+  }
+
+  .account .link-button {
+    font-size: 10px
+  }
+
+  .topbar>div:first-child {
+    display: none
+  }
+
+  .welcome-banner h2 {
+    font-size: 26px
+  }
+
+  .form-panel {
+    padding: 20px
+  }
+
+  .login-form {
+    padding: 30px
+  }
+
+  .stats .stat-top {
+    font-size: 11px
+  }
+}

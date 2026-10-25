@@ -1,0 +1,41 @@
+<%# ตารางนัดใช้ร่วมกับ Dashboard และหน้านัด: วนข้อมูลที่รับมา แสดงสถานะและลิงก์รายละเอียด %>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>นัดหมาย / สัตว์เลี้ยง</th>
+        <th>วันและเวลา</th>
+        <th>สัตวแพทย์</th>
+        <th>สถานะ</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <%# สร้างหนึ่งแถวต่อนัด และแสดงข้อความว่างเมื่อไม่มีรายการ %>
+    <tbody>
+      <% for(const a of appointments){ %>
+        <tr>
+          <td>
+            <strong><%= a.pet_name %></strong>
+            <small>#<%= a.id %> ·
+              <%= a.reason.slice(0,50) %></small>
+          </td>
+          <td><%= formatDate(a.scheduled_at) %></td>
+          <td><%= a.vet_name||'รอมอบหมาย' %></td>
+          <td>
+            <span class="badge <%= a.status %>"><%= statusNames[a.status] %></span>
+          </td>
+          <td>
+            <a class="table-link" href="/app/appointments/<%= a.id %>">เปิดดู ↗</a>
+          </td>
+        </tr>
+      <% } %>
+
+      <% if(!appointments.length){ %>
+        <tr>
+          <td colspan="5" class="empty">ยังไม่มีนัดหมายในรายการนี้</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>

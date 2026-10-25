@@ -1,0 +1,88 @@
+<%# จัดการ Role: เพิ่ม แก้ชื่อ/คำอธิบาย และลบ; สิทธิ์ของ Role ไปกำหนดที่หน้า ACL %>
+
+<%- include('../partials/header') %>
+<div class="page-heading">
+  <div>
+    <span class="eyebrow">ROLES</span>
+    <h1>บทบาทผู้ใช้งาน</h1>
+    <p>เพิ่มบทบาทได้ทันที แล้วกำหนดสิทธิ์ที่หน้าตาราง ACL</p>
+  </div>
+</div>
+<section class="panel form-panel">
+
+  <%# ส่วน เพิ่มบทบาท: เนื้อหาและช่องกรอกที่เกี่ยวข้องอยู่ถัดจากหัวข้อนี้ %>
+  <h2>เพิ่มบทบาท</h2>
+
+  <%# ส่งรหัส ชื่อ และคำอธิบาย เพื่อสร้างบทบาทใหม่ %>
+  <form method="post" action="/admin/roles" class="form-grid">
+
+    <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>รหัสบทบาท
+      <input name="code" required maxlength="80" placeholder="เช่น vet_assistant"
+        pattern="[a-z][a-z0-9_]*">
+    </label>
+    <label>ชื่อบทบาท
+      <input name="name" required maxlength="100" placeholder="เช่น ผู้ช่วยสัตวแพทย์">
+    </label>
+    <label class="full">คำอธิบาย
+      <input name="description" maxlength="500">
+    </label>
+    <button class="button">เพิ่มบทบาท</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>รหัส / จำนวนผู้ใช้</th>
+          <th>ชื่อและคำอธิบาย</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(const role of roles){ %>
+          <tr>
+            <td>
+              <strong><%= role.code %></strong>
+              <small><%= role.user_count %> บัญชี
+                <%= role.is_admin?'· สิทธิ์สูงสุด':'' %></small>
+            </td>
+            <td>
+
+              <%# ส่งข้อมูลที่แก้ไขพร้อมรหัสรายการใน URL; Server ตรวจสิทธิ์และความถูกต้องก่อนบันทึก %>
+              <form method="post" action="/admin/roles/<%= role.id %>/edit" class="inline-form">
+
+                <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <label>ชื่อ
+                  <input name="name" value="<%= role.name %>" maxlength="100" required>
+                </label>
+                <label>คำอธิบาย
+                  <input name="description" value="<%= role.description %>" maxlength="500">
+                </label>
+                <button class="button small">บันทึก</button>
+              </form>
+            </td>
+            <td>
+              <% if(!role.is_admin){ %>
+
+                <%# ฟอร์มลบรายการ: data-confirm ให้เบราว์เซอร์ถามยืนยัน ส่วน Server ตรวจสิทธิ์และข้อมูลที่เกี่ยวข้องอีกครั้ง %>
+                <form method="post" action="/admin/roles/<%= role.id %>/delete"
+                  data-confirm="ลบบทบาทนี้? บทบาทที่มีผู้ใช้จะลบไม่ได้">
+
+                  <%# ส่ง Token ของ Session ไปให้ CSRF Middleware ตรวจ ก่อนอนุญาตให้ทำรายการ %>
+                  <input type="hidden" name="_csrf" value="<%= csrf %>">
+                  <button class="link-button danger">ลบ</button>
+                </form>
+              <% } %>
+
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>

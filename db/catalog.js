@@ -44,7 +44,7 @@ const grants = {
   ]
 };
 
-/* Admin ไม่อยู่ใน grants เพราะ middleware/security.js ให้ผ่านการตรวจสิทธิ์อัตโนมัติ */
+/* Admin ไม่อยู่ใน grants เพราะ utils/permissions.js ให้ผ่านการตรวจสิทธิ์อัตโนมัติ */
 module.exports = {
   catalog,
   grants

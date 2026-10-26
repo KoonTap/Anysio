@@ -1,43 +1,41 @@
-/* Controller ดูแลสมัครสมาชิก เข้าสู่ระบบ และออกจากระบบ; ใช้ bcrypt ตรวจรหัสผ่านแบบ Hash */
+/* Controller auth: ตรวจข้อมูล ควบคุมขั้นตอน และส่งผลให้ View/JSON; SQL อยู่ใน Models */
+const { fail, id, text } = require('../utils/validation');
+const transaction = require('../db/transaction');
+const audit = require('../services/auditLog');
+const path = require('node:path');
 const bcrypt = require('bcryptjs');
-const {
-  text,
-  fail,
-  audit,
-  transaction
-} = require('../middleware/security');
-// A fixed dummy hash keeps the unknown-user path comparable to normal password verification.
-const dummy = bcrypt.hashSync('not-a-real-account-password', 12);
-module.exports = function(router, db) {
+const userModel = require('../models/userModel');
+const roleModel = require('../models/roleModel');
 
-  /* นับความถี่ตาม IP ในหน่วยความจำของโปรเซส; ตัวนับจะเริ่มใหม่เมื่อเซิร์ฟเวอร์รีสตาร์ต */
+module.exports = function createAuthController(db) {
+  /* เลือกหน้าแรกจากสถานะการเข้าสู่ระบบ */
+  const home = (req, res) => res.redirect(req.user ? '/app' : '/login');
+  // ตัวนับแยกต่อแอปและเริ่มใหม่เมื่อเซิร์ฟเวอร์รีสตาร์ต
   const attempts = new Map();
   const registrationAttempts = new Map();
+  const dummy = bcrypt.hashSync('not-a-real-account-password', 12);
 
   /* เปิดหน้าสมัครสมาชิก; หากเข้าสู่ระบบอยู่แล้วให้กลับ Dashboard */
-  router.get('/register', (req, res) => {
+  const showRegister = (req, res) => {
     if (req.user) return res.redirect('/app');
     res.render('register', {
       title: 'สมัครสมาชิก',
       error: null,
       values: {}
     });
-  });
+  };
 
   /* รับฟอร์มสมัคร: ตรวจข้อมูล จำกัดความถี่ และสร้างบัญชี Owner เท่านั้น */
-  router.post('/register', async (req, res) => {
+  const register = async (req, res) => {
     if (req.user) return res.redirect('/app');
 
     /* เก็บเฉพาะชื่อไว้แสดงกลับเมื่อกรอกผิด ไม่ส่งรหัสผ่านกลับไปในฟอร์ม */
     const values = {
-      username: typeof req.body.username === 'string' ? req.body.username.slice(0, 60) :
-        '',
-      full_name: typeof req.body.full_name === 'string' ? req.body.full_name.slice(0,
-        150) : ''
+      username: typeof req.body.username === 'string' ? req.body.username.slice(0, 60) : '',
+      full_name: typeof req.body.full_name === 'string' ? req.body.full_name.slice(0, 150) : ''
     };
 
     try {
-
       /* อนุญาตให้ส่งคำขอสมัครได้ไม่เกิน 10 ครั้งต่อ IP ในช่วง 15 นาที */
       const now = Date.now();
       const windowMs = 15 * 60 * 1000;
@@ -59,12 +57,10 @@ module.exports = function(router, db) {
       const username = text(req.body.username, 'ชื่อผู้ใช้', 60);
       const fullName = text(req.body.full_name, 'ชื่อที่แสดง', 150);
       if (!/^[a-zA-Z0-9_.-]{3,60}$/.test(username)) {
-        throw fail(400,
-          'ชื่อผู้ใช้ต้องมี 3–60 ตัว ใช้ภาษาอังกฤษ ตัวเลข จุด ขีดกลาง หรือขีดล่าง');
+        throw fail(400, 'ชื่อผู้ใช้ต้องมี 3–60 ตัว ใช้ภาษาอังกฤษ ตัวเลข จุด ขีดกลาง หรือขีดล่าง');
       }
       const password = req.body.password;
-      if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(
-        password) > 72) {
+      if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72) {
         throw fail(400, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษรและไม่เกิน 72 ไบต์');
       }
       if (password !== password.trim()) {
@@ -76,18 +72,12 @@ module.exports = function(router, db) {
 
       /* แฮชรหัสผ่านก่อนบันทึก; สร้างบัญชีกับ Log ภายใน Transaction เดียวกัน */
       const hash = await bcrypt.hash(password, 12);
-      await transaction(db, async client => {
+      await transaction(db, async (client) => {
         // Public registration always uses the owner role, never a submitted role ID.
-        const role = (await client.query(
-          "SELECT id FROM roles WHERE code = 'owner' AND is_admin = FALSE FOR SHARE"
-        )).rows[0];
-        if (!role) throw fail(503,
-          'ยังไม่สามารถสมัครสมาชิกได้ กรุณาติดต่อเจ้าหน้าที่คลินิก');
+        const role = (await roleModel.findOwnerForRegistration(client)).rows[0];
+        if (!role) throw fail(503, 'ยังไม่สามารถสมัครสมาชิกได้ กรุณาติดต่อเจ้าหน้าที่คลินิก');
 
-        const account = (await client.query(
-          'INSERT INTO users(username, password_hash, full_name, role_id) VALUES($1, $2, $3, $4) RETURNING id',
-          [username, hash, fullName, role.id]
-        )).rows[0];
+        const account = (await userModel.create(client, username, hash, fullName, role.id)).rows[0];
         req.attemptedUsername = username;
         await audit(client, req, 'user.register', 'user', account.id);
       });
@@ -104,10 +94,10 @@ module.exports = function(router, db) {
         values
       });
     }
-  });
+  };
 
   /* แสดงหน้า Login พร้อมอ่านข้อความสมัครสำเร็จแล้วล้างสถานะข้อความ */
-  router.get('/login', (req, res) => {
+  const showLogin = (req, res) => {
     if (req.user) return res.redirect('/app');
     const registered = req.session.registrationComplete === true;
     delete req.session.registrationComplete;
@@ -115,14 +105,13 @@ module.exports = function(router, db) {
       title: 'เข้าสู่ระบบ',
       registered
     });
-  });
+  };
 
   /* รับข้อมูลเข้าสู่ระบบและจำกัดความพยายามที่ไม่ผ่าน 20 ครั้งต่อ IP ในช่วง 10 นาที */
-  router.post('/login', async (req, res) => {
+  const login = async (req, res) => {
     const key = req.ip;
     const now = Date.now();
-    for (const [k, v] of attempts)
-      if (now - v.start > 600000) attempts.delete(k);
+    for (const [k, v] of attempts) if (now - v.start > 600000) attempts.delete(k);
     const hit = attempts.get(key) || {
       start: now,
       count: 0
@@ -137,8 +126,7 @@ module.exports = function(router, db) {
     const username = text(req.body.username, 'ชื่อผู้ใช้', 80);
     req.attemptedUsername = username;
     const password = text(req.body.password, 'รหัสผ่าน', 200);
-    const user = (await db.query('SELECT * FROM users WHERE username=$1', [username])).rows[
-      0];
+    const user = (await userModel.findByUsername(db, username)).rows[0];
 
     /* เทียบรหัสกับ Hash; ใช้ Hash จำลองเมื่อไม่พบบัญชีเพื่อลดความต่างของเวลาประมวลผล */
     const valid = await bcrypt.compare(password, user?.password_hash || dummy);
@@ -148,24 +136,25 @@ module.exports = function(router, db) {
     attempts.delete(key);
 
     /* เปลี่ยน Session ID หลัง Login สำเร็จ แล้วเก็บ userId และบันทึก Log */
-    await new Promise((resolve, reject) => req.session.regenerate(e => e ? reject(e) :
-      resolve()));
+    await new Promise((resolve, reject) =>
+      req.session.regenerate((e) => (e ? reject(e) : resolve()))
+    );
     req.session.userId = user.id;
     req.user = user;
     await audit(db, req, 'login', 'auth', user.id);
-    await new Promise((resolve, reject) => req.session.save(e => e ? reject(e) :
-      resolve()));
+    await new Promise((resolve, reject) => req.session.save((e) => (e ? reject(e) : resolve())));
     res.redirect('/app');
-  });
+  };
 
   /* บันทึกการออกจากระบบ ทำลาย Session และลบ Cookie ก่อนกลับหน้า Login */
-  router.post('/logout', async (req, res) => {
+  const logout = async (req, res) => {
     if (req.user) await audit(db, req, 'logout', 'auth', req.user.id);
-    await new Promise((resolve, reject) => req.session.destroy(e => e ? reject(e) :
-      resolve()));
+    await new Promise((resolve, reject) => req.session.destroy((e) => (e ? reject(e) : resolve())));
     res.clearCookie('anysio.sid', {
       path: '/'
     });
     res.redirect('/login');
-  });
+  };
+
+  return { home, showRegister, register, showLogin, login, logout };
 };

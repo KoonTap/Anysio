@@ -13,7 +13,7 @@ const petModel = require('../models/petModel');
 module.exports = function createAppointmentController(db) {
   /* แสดงรายการนัดและสัตว์ที่เลือกขอนัดได้ ตามขอบเขตสิทธิ์ผู้ใช้ */
   const list = async (req, res) => {
-    const appointments = (await appointmentModel.listVisible(db, req.user)).rows;
+    const appointments = (await appointmentModel.listVisible(db, req.user, { orderById: true })).rows;
     const pets = (await petModel.listForBooking(db, req.user)).rows;
     res.render('appointments', {
       title: 'นัดหมาย',

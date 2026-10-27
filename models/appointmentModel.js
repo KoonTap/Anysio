@@ -30,10 +30,12 @@ function create(db, petId, scheduledAt, reason) {
 }
 
 /* อ่านเฉพาะข้อมูลที่ผู้ใช้มีสิทธิ์เข้าถึง (นัดหมาย) */
-function listVisible(db, user) {
+function listVisible(db, user, { orderById = false } = {}) {
   const scope = appointmentScope(user);
+  // หน้ารายการเรียงเลขนัดจากน้อยไปมาก; Dashboard ยังคงแสดงตามเวลานัดล่าสุด
+  const order = orderById ? 'a.id ASC' : 'a.scheduled_at DESC, a.id DESC';
   return db.query(
-    `SELECT a.*,p.name AS pet_name,v.full_name AS vet_name FROM appointments a JOIN pets p ON p.id=a.pet_id LEFT JOIN users v ON v.id=a.vet_id WHERE ${scope.sql} ORDER BY a.scheduled_at DESC`,
+    `SELECT a.*,p.name AS pet_name,v.full_name AS vet_name FROM appointments a JOIN pets p ON p.id=a.pet_id LEFT JOIN users v ON v.id=a.vet_id WHERE ${scope.sql} ORDER BY ${order}`,
     scope.args
   );
 }

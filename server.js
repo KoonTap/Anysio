@@ -11,7 +11,7 @@ const helmet = require('helmet');
 const auditErrors = require('./middleware/audit');
 const { notFound, errorHandler } = require('./middleware/errors');
 
-/* สร้างแอป โดยรับฐานข้อมูลและที่เก็บ Session แบบกำหนดเองได้สำหรับการทดสอบ */
+/* สร้างแอป โดยรับฐานข้อมูลและที่เก็บ Session แบบกำหนดเองได้ */
 function createApp({ db, sessionStore, sessionSecret, uploadDir } = {}) {
   db = db || require('./db/pool');
   const app = express();

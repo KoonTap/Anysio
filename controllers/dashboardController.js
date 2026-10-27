@@ -6,7 +6,7 @@ module.exports = function createDashboardController(db) {
   const show = async (req, res) => {
     const rows = (await appointmentModel.listVisible(db, req.user)).rows;
     res.render('dashboard', {
-      title: 'ภาพรวมคลินิก',
+      title: 'Home',
       appointments: rows
     });
   };
